@@ -46,9 +46,9 @@ export default function ScrollSequence({ onLoaded }: Props) {
       if (!alive) return
       const dpr = Math.min(window.devicePixelRatio ?? 1, 2)
       const w   = window.innerWidth
-      // Use visualViewport.height on mobile so canvas tracks the *visual* viewport
-      // (excludes iOS Safari URL bar) — prevents blank strips top/bottom
-      const h   = window.visualViewport?.height ?? window.innerHeight
+      // Use innerHeight so canvas always matches the position:fixed container (inset:0)
+      // which is always window.innerWidth × window.innerHeight on all browsers
+      const h   = window.innerHeight
       canvas!.width  = Math.round(w * dpr)
       canvas!.height = Math.round(h * dpr)
       canvas!.style.width  = w + 'px'
@@ -67,15 +67,21 @@ export default function ScrollSequence({ onLoaded }: Props) {
         }
       }
       if (!img?.complete || !img.naturalWidth) return
-      const cw    = canvas!.width
-      const ch    = canvas!.height
-      // Cover-fill: image always fills the full canvas — no black bars on any device
+      const cw = canvas!.width
+      const ch = canvas!.height
+      // Standard cover-fill — scale so the image fills the entire canvas
       const scale = Math.max(cw / img.naturalWidth, ch / img.naturalHeight)
-      const dx    = (cw - img.naturalWidth  * scale) / 2
-      const dy    = (ch - img.naturalHeight * scale) / 2
+      const iw    = img.naturalWidth  * scale
+      const ih    = img.naturalHeight * scale
+      // Center horizontally always.
+      // Portrait (mobile): bottom-anchor so any dark empty space in the top of the
+      // source frame gets cropped and the bottom edge is always flush with the canvas.
+      // Landscape (desktop): center vertically — standard behavior.
+      const dx = (cw - iw) / 2
+      const dy = ch > cw ? ch - ih : (ch - ih) / 2
       ctx!.fillStyle = '#000'
       ctx!.fillRect(0, 0, cw, ch)
-      ctx!.drawImage(img, dx, dy, img.naturalWidth * scale, img.naturalHeight * scale)
+      ctx!.drawImage(img, dx, dy, iw, ih)
     }
 
     // ── RAF tick: lerp → draw → update progress bar → idle when converged ───
