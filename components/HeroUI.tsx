@@ -269,11 +269,32 @@ export default function HeroUI({ loaded }: Props) {
               initial={{ opacity: 0, y: 18 }}
               animate={{ opacity: loaded ? 1 : 0, y: loaded ? 0 : 18 }}
               transition={{ duration: 0.95, ease, delay: 0.78 }}
-              style={{ pointerEvents: 'auto', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10 }}
+              style={{ pointerEvents: 'auto', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}
             >
-              <p style={{ fontFamily: 'var(--font-outfit)', fontSize: 11, fontWeight: 600, letterSpacing: '0.36em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.50)', margin: 0 }}>
+              {/* Role tag */}
+              <p style={{ fontFamily: 'var(--font-outfit)', fontSize: 10, fontWeight: 500, letterSpacing: '0.38em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.38)', margin: 0 }}>
                 UI / UX Designer
               </p>
+
+              {/* Italic tagline */}
+              <p style={{
+                fontFamily: 'var(--font-playfair)',
+                fontSize: 'clamp(15px, 4.2vw, 19px)',
+                fontWeight: 400,
+                fontStyle: 'italic',
+                color: 'rgba(255,255,255,0.60)',
+                lineHeight: 1.5,
+                textAlign: 'center',
+                margin: 0,
+                padding: '0 24px',
+              }}>
+                Crafting interfaces that<br />feel as good as they look.
+              </p>
+
+              {/* Thin separator */}
+              <div style={{ width: 32, height: 1, background: 'rgba(255,255,255,0.12)' }} />
+
+              {/* Social links */}
               <div style={{ display: 'flex', gap: 24, alignItems: 'center' }}>
                 <a href="https://x.com/_anurag_adarsh" target="_blank" rel="noopener noreferrer" className="hero-social" style={{ display: 'flex', alignItems: 'center', gap: 6, color: 'rgba(255,255,255,0.45)', textDecoration: 'none' }}>
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.746l7.73-8.835L1.254 2.25H8.08l4.253 5.622zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
@@ -336,19 +357,23 @@ export default function HeroUI({ loaded }: Props) {
         )}
       </div>{/* end bodyWrapRef */}
 
-      {/* ── SCROLL HINT — desktop: bottom-right spinning ring | mobile: smaller centered ── */}
+      {/* ── SCROLL HINT ─────────────────────────────────────────────────────────
+           Mobile: sits between 3D object and bottom text — no overlap
+           Desktop: bottom-right corner
+        ─────────────────────────────────────────────────────────────────────── */}
       <div
         ref={hintRef}
         style={{
           position: 'absolute',
-          bottom: isMobile ? 112 : 'clamp(28px, 5vh, 52px)' as React.CSSProperties['bottom'],
+          // Mobile: 200px from bottom clears the ~170px tall bottom content block
+          // Desktop: standard bottom-right placement
+          bottom: isMobile ? 200 : 'clamp(28px, 5vh, 52px)' as React.CSSProperties['bottom'],
           ...(isMobile
             ? { left: 0, right: 0, justifyContent: 'center' }
             : { right: 'clamp(24px, 5vw, 72px)' }),
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
-          gap: 10,
           pointerEvents: 'none',
         }}
       >
@@ -356,23 +381,39 @@ export default function HeroUI({ loaded }: Props) {
           initial={{ opacity: 0 }}
           animate={{ opacity: loaded ? 1 : 0 }}
           transition={{ duration: 0.9, delay: 1.4 }}
-          style={{ position: 'relative', width: isMobile ? 64 : 88, height: isMobile ? 64 : 88 }}
+          style={{ position: 'relative', width: isMobile ? 72 : 88, height: isMobile ? 72 : 88 }}
         >
           {isMobile ? (
-            <svg width="64" height="64" viewBox="0 0 64 64" style={{ animation: 'scroll-spin 10s linear infinite' }}>
+            // Mobile: 72×72, r=30, circumference ≈ 188px
+            // textLength="187" + lengthAdjust="spacing" stretches gaps to fill the full circle — no gap
+            <svg width="72" height="72" viewBox="0 0 72 72" style={{ animation: 'scroll-spin 12s linear infinite' }}>
               <defs>
-                <path id="scrollCircleMobile" d="M 32,32 m -26,0 a 26,26 0 1,1 52,0 a 26,26 0 1,1 -52,0" />
+                <path id="scrollCircleMobile" d="M 36,36 m -30,0 a 30,30 0 1,1 60,0 a 30,30 0 1,1 -60,0" />
               </defs>
-              <text fontFamily="var(--font-outfit)" fontSize="5.5" fill="rgba(255,255,255,0.24)" letterSpacing="2.2">
-                <textPath href="#scrollCircleMobile" startOffset="0%">SCROLL · SCROLL · SCROLL ·</textPath>
+              <text
+                fontFamily="var(--font-outfit)"
+                fontSize="6.5"
+                fill="rgba(255,255,255,0.35)"
+                textLength="187"
+                lengthAdjust="spacing"
+              >
+                <textPath href="#scrollCircleMobile" startOffset="0%">SCROLL DOWN · SCROLL DOWN ·</textPath>
               </text>
             </svg>
           ) : (
-            <svg width="88" height="88" viewBox="0 0 88 88" style={{ animation: 'scroll-spin 10s linear infinite' }}>
+            // Desktop: 88×88, r=36, circumference ≈ 226px
+            // textLength="225" + lengthAdjust="spacing" fills the full circle — no gap
+            <svg width="88" height="88" viewBox="0 0 88 88" style={{ animation: 'scroll-spin 12s linear infinite' }}>
               <defs>
                 <path id="scrollCircle" d="M 44,44 m -36,0 a 36,36 0 1,1 72,0 a 36,36 0 1,1 -72,0" />
               </defs>
-              <text fontFamily="var(--font-outfit)" fontSize="7" fill="rgba(255,255,255,0.28)" letterSpacing="2.5">
+              <text
+                fontFamily="var(--font-outfit)"
+                fontSize="7"
+                fill="rgba(255,255,255,0.32)"
+                textLength="225"
+                lengthAdjust="spacing"
+              >
                 <textPath href="#scrollCircle" startOffset="0%">SCROLL DOWN · SCROLL DOWN ·</textPath>
               </text>
             </svg>
@@ -383,8 +424,8 @@ export default function HeroUI({ loaded }: Props) {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            color: 'rgba(255,255,255,0.22)',
-            fontSize: isMobile ? 12 : 14,
+            color: 'rgba(255,255,255,0.28)',
+            fontSize: isMobile ? 13 : 15,
           }}>
             ↓
           </div>
