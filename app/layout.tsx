@@ -51,7 +51,7 @@ export const metadata: Metadata = {
       'Portfolio of Anurag Adarsh, a Product & UI/UX Designer crafting interfaces that feel as good as they look.',
     images: [
       {
-        url: '/og-image.jpg',
+        url: '/og-image.svg',
         width: 1200,
         height: 630,
         alt: 'Anurag Adarsh — Product Designer',
@@ -64,7 +64,7 @@ export const metadata: Metadata = {
     description:
       'Portfolio of Anurag Adarsh, a Product & UI/UX Designer crafting interfaces that feel as good as they look.',
     creator: '@anuragadarsh_',
-    images: ['/og-image.jpg'],
+    images: ['/og-image.svg'],
   },
   robots: {
     index: true,
