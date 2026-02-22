@@ -4,10 +4,11 @@ import { useEffect, useRef, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 
 // ─── Config ────────────────────────────────────────────────────────────────────
-const TOTAL_FRAMES      = 40
-const SCROLL_HEIGHT_VH  = 350    // total scrollable height in vh
-const LERP_FACTOR       = 0.065  // easing — lower = silkier/slower catch-up
+const TOTAL_FRAMES      = 192
+const SCROLL_HEIGHT_VH  = 600    // total scrollable height in vh  (~3.1vh per frame)
+const LERP_FACTOR       = 0.072  // easing — lower = silkier/slower catch-up
 const LERP_EPSILON      = 0.008  // stop RAF when diff is below this threshold
+const EAGER_FRAMES      = 30     // show UI after this many frames are ready; rest load in bg
 
 function frameSrc(index: number): string {
   const n = String(index + 1).padStart(3, '0')
@@ -56,11 +57,20 @@ export default function ScrollSequence({ onLoaded }: Props) {
     // ── Draw: cover-fill one frame, centered ────────────────────────────────
     function draw(idx: number) {
       if (!alive) return
-      const img = images[idx]
+      // If this exact frame isn't ready yet, walk back to last loaded frame
+      let img = images[idx]
+      if (!img?.complete || !img.naturalWidth) {
+        for (let j = idx - 1; j >= 0; j--) {
+          if (images[j]?.complete && images[j].naturalWidth) { img = images[j]; break }
+        }
+      }
       if (!img?.complete || !img.naturalWidth) return
       const cw    = canvas!.width
       const ch    = canvas!.height
-      const scale = Math.max(cw / img.naturalWidth, ch / img.naturalHeight)
+      // On portrait/mobile viewports, zoom out slightly so the subject isn't cropped
+      const isPortrait = ch > cw
+      const zoomFactor = isPortrait ? 0.78 : 1.0
+      const scale = Math.max(cw / img.naturalWidth, ch / img.naturalHeight) * zoomFactor
       const dx    = (cw - img.naturalWidth  * scale) / 2
       const dy    = (ch - img.naturalHeight * scale) / 2
       ctx!.fillStyle = '#000'
@@ -114,6 +124,7 @@ export default function ScrollSequence({ onLoaded }: Props) {
     }
 
     // ── Preload all frames ───────────────────────────────────────────────────
+    let eagerDone = false   // tracks whether we've fired onLoaded() yet
     for (let i = 0; i < TOTAL_FRAMES; i++) {
       const img = new Image()
       img.decoding = 'async'
@@ -128,7 +139,10 @@ export default function ScrollSequence({ onLoaded }: Props) {
           resize()
           draw(0)
         }
-        if (loadedCount === TOTAL_FRAMES) {
+        // Fire onLoaded early after EAGER_FRAMES so the UI appears fast;
+        // remaining frames keep loading silently in the background.
+        if (!eagerDone && loadedCount >= EAGER_FRAMES) {
+          eagerDone = true
           setLoaded(true)
           onLoaded?.()
         }
@@ -136,7 +150,8 @@ export default function ScrollSequence({ onLoaded }: Props) {
       img.onerror = () => {
         loadedCount++
         setLoadPct(Math.round((loadedCount / TOTAL_FRAMES) * 100))
-        if (loadedCount === TOTAL_FRAMES) {
+        if (!eagerDone && loadedCount >= EAGER_FRAMES) {
+          eagerDone = true
           setLoaded(true)
           onLoaded?.()
         }

@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 // ── Cards: each defines a single continuous journey start→end ─────────────────
 // At `start` the card enters from +110vh below; at `end` it has exited to -110vh above.
@@ -42,6 +42,14 @@ const BTN_IN_WINDOW = 0.07
 export default function CardsSection() {
   const cardRefs = useRef<(HTMLDivElement | null)[]>([])
   const btnRef   = useRef<HTMLDivElement>(null)
+  const [isMobile, setIsMobile] = useState(false)
+
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 640)
+    check()
+    window.addEventListener('resize', check)
+    return () => window.removeEventListener('resize', check)
+  }, [])
 
   useEffect(() => {
     let alive = true
@@ -91,21 +99,25 @@ export default function CardsSection() {
   return (
     <>
       {/* Scattered cards — each at its own fixed screen coordinate */}
-      {CARDS.map((card, i) => (
+      {CARDS.map((card, i) => {
+        // On mobile: all cards span full width centered; on desktop: scattered positions
+        const mobilePos: React.CSSProperties = { left: '5%', right: '5%', bottom: '22%' }
+        const pos = isMobile ? mobilePos : card.pos
+        return (
         <div
           key={card.tag}
           ref={el => { cardRefs.current[i] = el }}
           className="glass-card"
           style={{
             position: 'fixed',
-            ...card.pos,
+            ...pos,
             zIndex: 10,
-            width: 'clamp(230px, 18vw, 288px)',
+            width: isMobile ? undefined : 'clamp(230px, 18vw, 288px)',
             background: 'rgba(255,255,255,0.04)',
             ...glass,
             border: '1px solid rgba(255,255,255,0.07)',
             borderRadius: 20,
-            padding: '24px 22px 26px',
+            padding: isMobile ? '20px 18px 22px' : '24px 22px 26px',
             opacity: 0,
             transform: 'translateY(70px)',
             willChange: 'opacity, transform',
@@ -166,8 +178,8 @@ export default function CardsSection() {
               {card.body}
             </p>
           </div>
-        ))}
-
+        )
+      })}
         {/* ── "Let's Dive In Deep" — centered, rises at 89%+ scroll ── */}
         <div
           ref={btnRef}
