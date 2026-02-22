@@ -46,7 +46,9 @@ export default function ScrollSequence({ onLoaded }: Props) {
       if (!alive) return
       const dpr = Math.min(window.devicePixelRatio ?? 1, 2)
       const w   = window.innerWidth
-      const h   = window.innerHeight
+      // Use visualViewport.height on mobile so canvas tracks the *visual* viewport
+      // (excludes iOS Safari URL bar) — prevents blank strips top/bottom
+      const h   = window.visualViewport?.height ?? window.innerHeight
       canvas!.width  = Math.round(w * dpr)
       canvas!.height = Math.round(h * dpr)
       canvas!.style.width  = w + 'px'
@@ -67,10 +69,8 @@ export default function ScrollSequence({ onLoaded }: Props) {
       if (!img?.complete || !img.naturalWidth) return
       const cw    = canvas!.width
       const ch    = canvas!.height
-      // On portrait/mobile viewports, zoom out slightly so the subject isn't cropped
-      const isPortrait = ch > cw
-      const zoomFactor = isPortrait ? 0.78 : 1.0
-      const scale = Math.max(cw / img.naturalWidth, ch / img.naturalHeight) * zoomFactor
+      // Cover-fill: image always fills the full canvas — no black bars on any device
+      const scale = Math.max(cw / img.naturalWidth, ch / img.naturalHeight)
       const dx    = (cw - img.naturalWidth  * scale) / 2
       const dy    = (ch - img.naturalHeight * scale) / 2
       ctx!.fillStyle = '#000'
@@ -161,15 +161,19 @@ export default function ScrollSequence({ onLoaded }: Props) {
     // ── Bootstrap ────────────────────────────────────────────────────────────
     resize()
     wakeRaf()
+    const onResize = () => { resize(); wakeRaf() }
     window.addEventListener('scroll', onScroll, { passive: true })
-    window.addEventListener('resize', () => { resize(); wakeRaf() })
+    window.addEventListener('resize', onResize)
+    // Also listen to visualViewport so iOS Safari URL-bar show/hide triggers a resize
+    window.visualViewport?.addEventListener('resize', onResize)
 
     // ── Cleanup ──────────────────────────────────────────────────────────────
     return () => {
       alive = false
       cancelAnimationFrame(raf)
       window.removeEventListener('scroll', onScroll)
-      window.removeEventListener('resize', resize)
+      window.removeEventListener('resize', onResize)
+      window.visualViewport?.removeEventListener('resize', onResize)
     }
   }, [])
 

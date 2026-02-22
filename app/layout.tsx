@@ -1,6 +1,15 @@
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 import { Outfit, Playfair_Display } from 'next/font/google'
 import './globals.css'
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  minimumScale: 1,
+  viewportFit: 'cover',          // fills iPhone notch / Dynamic Island
+  themeColor: '#000000',
+  colorScheme: 'dark',
+}
 
 const outfit = Outfit({
   subsets: ['latin'],
