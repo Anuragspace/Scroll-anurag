@@ -35,16 +35,16 @@ export const metadata: Metadata = {
     'Digital Product',
     'Brand Design',
   ],
-  authors: [{ name: 'Anurag Adarsh', url: 'https://www.anuragadarsh.in' }],
+  authors: [{ name: 'Anurag Adarsh', url: 'https://scrollanurag.vercel.app' }],
   creator: 'Anurag Adarsh',
-  metadataBase: new URL('https://www.anuragadarsh.in'),
+  metadataBase: new URL('https://scrollanurag.vercel.app'),
   alternates: {
     canonical: '/',
   },
   openGraph: {
     type: 'website',
     locale: 'en_US',
-    url: 'https://www.anuragadarsh.in',
+    url: 'https://scrollanurag.vercel.app',
     siteName: 'Anurag Adarsh',
     title: 'Anurag Adarsh — Product Designer',
     description:
