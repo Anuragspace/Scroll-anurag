@@ -91,11 +91,6 @@ export default function CardsSection() {
     return () => { alive = false; window.removeEventListener('scroll', update) }
   }, [])
 
-  const glass: React.CSSProperties = {
-    backdropFilter:       'blur(32px) saturate(180%)',
-    WebkitBackdropFilter: 'blur(32px) saturate(180%)',
-  }
-
   return (
     <>
       {/* Scattered cards — each at its own fixed screen coordinate */}
@@ -104,9 +99,9 @@ export default function CardsSection() {
         const mobilePos: React.CSSProperties = { left: '5%', right: '5%', bottom: '22%' }
         const pos = isMobile ? mobilePos : card.pos
         return (
-        <div
-          key={card.tag}
-          ref={el => { cardRefs.current[i] = el }}
+          <div
+            key={card.tag}
+            ref={el => { cardRefs.current[i] = el }}
           className="glass-card"
           style={{
             position: 'fixed',
@@ -114,7 +109,8 @@ export default function CardsSection() {
             zIndex: 10,
             width: isMobile ? undefined : 'clamp(230px, 18vw, 288px)',
             background: 'rgba(255,255,255,0.04)',
-            ...glass,
+            backdropFilter: 'blur(32px) saturate(180%)',
+            WebkitBackdropFilter: 'blur(32px) saturate(180%)',
             border: '1px solid rgba(255,255,255,0.07)',
             borderRadius: 20,
             padding: isMobile ? '20px 18px 22px' : '24px 22px 26px',
@@ -180,7 +176,8 @@ export default function CardsSection() {
           </div>
         )
       })}
-        {/* ── "Let's Dive In Deep" — centered, rises at 89%+ scroll ── */}
+
+      {/* ── "Let's Dive In Deep" — centered, rises at 89%+ scroll ── */}
         <div
           ref={btnRef}
           style={{

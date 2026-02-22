@@ -15,7 +15,7 @@ const outfit = Outfit({
   subsets: ['latin'],
   variable: '--font-outfit',
   display: 'swap',
-  weight: ['100', '200', '300', '400', '500', '600', '700', '800', '900'],
+  weight: ['300', '400', '500', '600'],
 })
 
 const playfair = Playfair_Display({
@@ -87,10 +87,7 @@ export const metadata: Metadata = {
     },
   },
   icons: {
-    icon: [
-      { url: '/icon.svg', type: 'image/svg+xml' },
-    ],
-    apple: '/apple-touch-icon.png',
+    icon: [{ url: '/icon.svg', type: 'image/svg+xml' }],
   },
   manifest: '/site.webmanifest',
 }
