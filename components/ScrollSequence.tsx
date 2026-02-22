@@ -10,9 +10,9 @@ const LERP_FACTOR       = 0.072  // easing — lower = silkier/slower catch-up
 const LERP_EPSILON      = 0.008  // stop RAF when diff is below this threshold
 const EAGER_FRAMES      = 30     // show UI after this many frames are ready; rest load in bg
 
-function frameSrc(index: number): string {
+function frameSrc(index: number, folder: string): string {
   const n = String(index + 1).padStart(3, '0')
-  return `/images/ezgif-frame-${n}.jpg`
+  return `/${folder}/ezgif-frame-${n}.jpg`
 }
 
 // ─── Component ─────────────────────────────────────────────────────────────────
@@ -32,6 +32,9 @@ export default function ScrollSequence({ onLoaded }: Props) {
     const ctx = canvas.getContext('2d', { alpha: false })
     if (!ctx) return
 
+    // ── Pick image folder: mobile/portrait → imagesmobile, landscape → images ──
+    const folder = () => window.innerHeight > window.innerWidth ? 'imagesmobile' : 'images'
+
     // ── All mutable state — zero React re-renders past this point ──────────
     const images: HTMLImageElement[] = new Array(TOTAL_FRAMES)
     let loadedCount  = 0
@@ -40,6 +43,7 @@ export default function ScrollSequence({ onLoaded }: Props) {
     let raf          = 0
     let rafRunning   = false
     let alive        = true
+    let currentFolder = folder()
 
     // ── Resize: match canvas pixel dimensions to DPR-scaled viewport ────────
     function resize() {
@@ -131,46 +135,54 @@ export default function ScrollSequence({ onLoaded }: Props) {
 
     // ── Preload all frames ───────────────────────────────────────────────────
     let eagerDone = false   // tracks whether we've fired onLoaded() yet
-    for (let i = 0; i < TOTAL_FRAMES; i++) {
-      const img = new Image()
-      img.decoding = 'async'
-      img.src = frameSrc(i)
-      images[i] = img
+    function loadImages(f: string) {
+      loadedCount = 0
+      eagerDone   = false
+      setLoadPct(0)
+      for (let i = 0; i < TOTAL_FRAMES; i++) {
+        const img = new Image()
+        img.decoding = 'async'
+        img.src = frameSrc(i, f)
+        images[i] = img
 
-      img.onload = () => {
-        loadedCount++
-        setLoadPct(Math.round((loadedCount / TOTAL_FRAMES) * 100))
-        // Render the very first frame as soon as it is ready
-        if (i === 0) {
-          resize()
-          draw(0)
+        img.onload = () => {
+          loadedCount++
+          setLoadPct(Math.round((loadedCount / TOTAL_FRAMES) * 100))
+          if (i === 0) { resize(); draw(0) }
+          if (!eagerDone && loadedCount >= EAGER_FRAMES) {
+            eagerDone = true
+            setLoaded(true)
+            onLoaded?.()
+          }
         }
-        // Fire onLoaded early after EAGER_FRAMES so the UI appears fast;
-        // remaining frames keep loading silently in the background.
-        if (!eagerDone && loadedCount >= EAGER_FRAMES) {
-          eagerDone = true
-          setLoaded(true)
-          onLoaded?.()
-        }
-      }
-      img.onerror = () => {
-        loadedCount++
-        setLoadPct(Math.round((loadedCount / TOTAL_FRAMES) * 100))
-        if (!eagerDone && loadedCount >= EAGER_FRAMES) {
-          eagerDone = true
-          setLoaded(true)
-          onLoaded?.()
+        img.onerror = () => {
+          loadedCount++
+          setLoadPct(Math.round((loadedCount / TOTAL_FRAMES) * 100))
+          if (!eagerDone && loadedCount >= EAGER_FRAMES) {
+            eagerDone = true
+            setLoaded(true)
+            onLoaded?.()
+          }
         }
       }
     }
 
     // ── Bootstrap ────────────────────────────────────────────────────────────
+    loadImages(currentFolder)
     resize()
     wakeRaf()
-    const onResize = () => { resize(); wakeRaf() }
+    const onResize = () => {
+      const newFolder = folder()
+      if (newFolder !== currentFolder) {
+        // Orientation flipped — reload the matching image set
+        currentFolder = newFolder
+        loadImages(currentFolder)
+      }
+      resize()
+      wakeRaf()
+    }
     window.addEventListener('scroll', onScroll, { passive: true })
     window.addEventListener('resize', onResize)
-    // Also listen to visualViewport so iOS Safari URL-bar show/hide triggers a resize
     window.visualViewport?.addEventListener('resize', onResize)
 
     // ── Cleanup ──────────────────────────────────────────────────────────────
